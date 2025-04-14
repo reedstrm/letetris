@@ -1,0 +1,29 @@
+plugins {
+    id 'application'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'org.reedstrom.letetris.DesktopLauncher'
+}
+
+dependencies {
+    implementation project(":core")
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions.jvmTarget = "17"
+}
+
+sourceSets.main.java.srcDirs += 'src/main/kotlin'

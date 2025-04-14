@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'org.reedstrom.letetris'
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId "org.reedstrom.letetris"
+        minSdk = 21                     // Target Android 5.0+ devices
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+
+dependencies {
+    implementation project(":core")
+
+    // libGDX for Android
+    implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+
+    // Enable Java 8–11 APIs on Android 5+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}

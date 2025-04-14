@@ -1,0 +1,42 @@
+# Kotlin & Java build outputs
+/build/
+**/build/
+out/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+gradlew
+gradlew.bat
+
+# VSCode settings
+.vscode/
+*.code-workspace
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Android specific
+.cxx/
+*.apk
+*.ap_
+*.dex
+*.class
+*.lock
+captures/
+local.properties
+
+# Misc
+*.swp
+*.tmp
