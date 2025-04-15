@@ -1,8 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:label="LeTetris"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+        android:icon="@mipmap/ic_launcher"
+        android:label="LETetris">
         <activity android:name="org.reedstrom.letetris.AndroidLauncher"
             android:screenOrientation="landscape"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout"
@@ -13,4 +14,5 @@
             </intent-filter>
         </activity>
     </application>
+    <uses-feature android:name="android.hardware.gamepad" android:required="false"/>
 </manifest>

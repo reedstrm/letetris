@@ -3,19 +3,15 @@ package org.reedstrom.letetris
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.controllers.Controllers
+import com.badlogic.gdx.controllers.Controller
+import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.controllers.Controller
-import com.badlogic.gdx.controllers.ControllerListener
-import com.badlogic.gdx.controllers.Controllers
-import com.badlogic.gdx.controllers.mappings.Xbox
-import com.badlogic.gdx.controllers.ControllerMapping
-import com.badlogic.gdx.controllers.ControllerAdapter
-
 
 class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListener {
     private val camera = OrthographicCamera()
@@ -43,60 +39,26 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
 
     private var gameOver = false
     private var score = 0
+    private val isAndroid = Gdx.app.type.name == "Android"
+    private var waitingForStart = true
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
-	Controllers.addListener(this)
+        Controllers.addListener(this)
     }
 
-
-
-    override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
-        when (buttonCode) {
-            Xbox.A -> moveDown()
-            Xbox.B -> rotatePiece()
-            Xbox.DPAD_LEFT -> moveLeft()
-            Xbox.DPAD_RIGHT -> moveRight()
-        }
-        return true
-    }
-
-    override fun render(delta: Float) {
-        handleRestart()
-        if (gameOver) {
-            drawGameOverOverlay()
-            return
-        }
-
+    private fun drawGameBoard() {
+        // Clear the screen
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        handleInput()
-
-        fallTimer += delta
-        if (fallTimer >= fallInterval) {
-            piecePosition.y -= blockSize
-            if (checkCollision(yOnly = true)) {
-                piecePosition.y += blockSize
-                lockPiece()
-                clearCompletedLines()
-                spawnNewPiece()
-                if (checkCollision()) {
-                    gameOver = true
-                }
-            }
-            fallTimer = 0f
-        }
 
         camera.update()
         shapeRenderer.projectionMatrix = camera.combined
 
+        // Draw the filled board areas
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-
-        // Play zones
         shapeRenderer.color = Color.DARK_GRAY
         shapeRenderer.rect(boardOrigin.x, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
-
         shapeRenderer.color = Color.DARK_GRAY
         shapeRenderer.rect(boardOrigin.x + boardOffset, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
 
@@ -106,7 +68,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
             shapeRenderer.rect(block.pos.x, block.pos.y, blockSize, blockSize)
         }
 
-        // Draw current piece
+        // Draw the current piece
         shapeRenderer.color = currentPiece.color
         for (offset in currentPiece.getRotatedOffsets(rotationState)) {
             shapeRenderer.rect(
@@ -116,21 +78,11 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
                 blockSize
             )
         }
-
         shapeRenderer.end()
 
-        // Draw score during gameplay
-        game.batch.begin()
-        game.batch.color = Color.WHITE
-        game.batch.projectionMatrix = camera.combined
-        font.color = Color.WHITE
-        font.draw(game.batch, "Score: $score", boardOrigin.x + boardOffset, boardOrigin.y - 20f)
-        game.batch.end()
-
-        // Draw debug grid
+        // Draw the grid lines
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.GRAY
-
         for (i in 0..boardWidth) {
             val x = boardOrigin.x + i * blockSize
             shapeRenderer.line(x, boardOrigin.y, x, boardOrigin.y + boardHeight * blockSize)
@@ -139,36 +91,60 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
         for (j in 0..boardHeight) {
             val y = boardOrigin.y + j * blockSize
             shapeRenderer.line(boardOrigin.x, y, boardOrigin.x + boardWidth * blockSize, y)
-            shapeRenderer.line(boardOrigin.x + boardOffset, y, boardOrigin.x + boardWidth * blockSize + boardOffset, y)
+            shapeRenderer.line(boardOrigin.x + boardOffset, y, boardOrigin.x + boardOffset + boardWidth * blockSize, y)
         }
-
         shapeRenderer.end()
     }
 
-    private fun drawGameOverOverlay() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
-        shapeRenderer.rect(200f, 190f, 400f, 100f)
-        shapeRenderer.end()
+    override fun render(delta: Float) {
+        drawGameBoard()
+
+        if (waitingForStart) {
+            drawGetReadyOverlay()
+            val controller = Controllers.getCurrent()
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || controller?.getButton(controller?.mapping?.buttonStart ?: -1) == true) {
+                waitingForStart = false
+            }
+            return
+        }
+
+        handleRestart()
+        if (gameOver) {
+            drawGameOverOverlay()
+            return
+        }
+
+        handleInput()
+
+        fallTimer += delta
+        if (fallTimer >= fallInterval) {
+            moveDown()
+            fallTimer = 0f
+        }
 
         game.batch.begin()
         game.batch.color = Color.WHITE
         game.batch.projectionMatrix = camera.combined
         font.color = Color.WHITE
-        font.draw(game.batch, "Game Over", 330f, 250f)
-        font.draw(game.batch, "Press R to Restart", 270f, 220f)
         font.draw(game.batch, "Score: $score", boardOrigin.x + boardOffset, boardOrigin.y - 20f)
         game.batch.end()
     }
 
     private fun handleRestart() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+        val controller = Controllers.getCurrent()
+        val restartPressed = Gdx.input.isKeyJustPressed(Input.Keys.R) || (controller?.getButton(controller.mapping.buttonStart) == true)
+
+        if (restartPressed) {
             frozenBlocks.clear()
             piecePosition.set(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
             rotationState = 0
             currentPiece = Tetromino.random()
             fallTimer = 0f
+            score = 0
             gameOver = false
+            // Clear the screen
+            Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         }
     }
 
@@ -226,6 +202,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
             val y = piecePosition.y + offset.y * blockSize
             frozenBlocks.add(FrozenBlock(Vector2(x + boardOffset, y), currentPiece.color))
         }
+        score += 10
     }
 
     private fun spawnNewPiece() {
@@ -244,14 +221,97 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
 
         score += fullRows.size * 100
 
+        // Remove all blocks in the full rows
         frozenBlocks.removeIf { it.pos.y in fullRows }
 
-        for (row in fullRows) {
-            for (block in frozenBlocks) {
-                if (block.pos.y > row) {
-                    block.pos = Vector2(block.pos.x, block.pos.y - blockSize)
-                }
+        // Find the highest cleared row
+        val maxClearedRow = fullRows.maxOrNull() ?: return
+
+        // Move all blocks above the highest cleared row down
+        for (block in frozenBlocks) {
+            if (block.pos.y > maxClearedRow) {
+                block.pos = Vector2(block.pos.x, block.pos.y - blockSize * fullRows.size)
             }
         }
     }
+
+    private fun drawGetReadyOverlay() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
+
+        // Centered rectangles for both screens
+        shapeRenderer.rect(boardOrigin.x + boardWidth * blockSize / 2 - 200f, 190f, 400f, 100f)
+        shapeRenderer.rect(boardOrigin.x + boardOffset + boardWidth * blockSize / 2 - 200f, 190f, 400f, 100f)
+
+        shapeRenderer.end()
+
+        game.batch.begin()
+        game.batch.color = Color.WHITE
+        game.batch.projectionMatrix = camera.combined
+        font.color = Color.WHITE
+
+        val startText = if (isAndroid) "Press Start" else "Press Space to Start"
+
+        // Left screen (centered on the left playing field)
+        val leftCenterX = boardOrigin.x + boardWidth * blockSize / 2
+        font.draw(game.batch, "Get Ready!", leftCenterX - 70f, 250f)
+        font.draw(game.batch, startText, leftCenterX - 70f, 220f)
+
+        // Right screen (centered on the right playing field)
+        val rightCenterX = boardOrigin.x + boardOffset + boardWidth * blockSize / 2
+        font.draw(game.batch, "Get Ready!", rightCenterX - 70f, 250f)
+        font.draw(game.batch, startText, rightCenterX - 70f, 220f)
+
+        game.batch.end()
+    }
+
+    private fun drawGameOverOverlay() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
+
+        // Centered rectangles for both screens
+        shapeRenderer.rect(boardOrigin.x + boardWidth * blockSize / 2 - 200f, 150f, 400f, 140f)
+        shapeRenderer.rect(boardOrigin.x + boardOffset + boardWidth * blockSize / 2 - 200f, 150f, 400f, 140f)
+
+        shapeRenderer.end()
+
+        game.batch.begin()
+        game.batch.color = Color.WHITE
+        game.batch.projectionMatrix = camera.combined
+        font.color = Color.WHITE
+
+        val restartText = if (isAndroid) "Press Start to Restart" else "Press R to Restart"
+
+        // Left screen (centered on the left playing field)
+        val leftCenterX = boardOrigin.x + boardWidth * blockSize / 2
+        font.draw(game.batch, "Game Over", leftCenterX - 70f, 250f)
+        font.draw(game.batch, restartText, leftCenterX - 130f, 220f)
+        font.draw(game.batch, "Score: $score", leftCenterX - 70f, 190f)
+
+        // Right screen (centered on the right playing field)
+        val rightCenterX = boardOrigin.x + boardOffset + boardWidth * blockSize / 2
+        font.draw(game.batch, "Game Over", rightCenterX - 70f, 250f)
+        font.draw(game.batch, restartText, rightCenterX - 130f, 220f)
+        font.draw(game.batch, "Score: $score", rightCenterX - 70f, 190f)
+
+        game.batch.end()
+    }
+
+    override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
+        val mapping = controller?.mapping ?: return false
+
+        when (buttonCode) {
+            mapping.buttonA -> moveDown()
+            mapping.buttonB -> moveRight()
+            mapping.buttonX -> moveLeft()
+            mapping.buttonY -> rotatePiece()
+        }
+
+        return true
+    }
+
+    override fun connected(controller: Controller?) {}
+    override fun disconnected(controller: Controller?) {}
+    override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean = false
+    override fun axisMoved(controller: Controller?, axisCode: Int, value: Float): Boolean = false
 }

@@ -20,6 +20,7 @@ gradlew.bat
 *.iml
 *.ipr
 *.iws
+android/libs
 
 # OS
 .DS_Store
