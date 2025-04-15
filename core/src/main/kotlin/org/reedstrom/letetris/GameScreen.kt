@@ -35,6 +35,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     private val frozenBlocks = mutableListOf<FrozenBlock>()
 
     private var gameOver = false
+    private var score = 0
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
@@ -60,7 +61,9 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
                 lockPiece()
                 clearCompletedLines()
                 spawnNewPiece()
-                if (checkCollision()) gameOver = true
+                if (checkCollision()) {
+                    gameOver = true
+                }
             }
             fallTimer = 0f
         }
@@ -96,6 +99,14 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
         shapeRenderer.end()
 
+        // Draw score during gameplay
+        game.batch.begin()
+        game.batch.color = Color.WHITE
+        game.batch.projectionMatrix = camera.combined
+        font.color = Color.WHITE
+        font.draw(game.batch, "Score: $score", boardOrigin.x + boardOffset, boardOrigin.y - 20f)
+        game.batch.end()
+
         // Draw debug grid
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.GRAY
@@ -126,6 +137,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         font.color = Color.WHITE
         font.draw(game.batch, "Game Over", 330f, 250f)
         font.draw(game.batch, "Press R to Restart", 270f, 220f)
+        font.draw(game.batch, "Score: $score", boardOrigin.x + boardOffset, boardOrigin.y - 20f)
         game.batch.end()
     }
 
@@ -201,6 +213,8 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         }.keys.sorted()
 
         if (fullRows.isEmpty()) return
+
+        score += fullRows.size * 100
 
         frozenBlocks.removeIf { it.pos.y in fullRows }
 
