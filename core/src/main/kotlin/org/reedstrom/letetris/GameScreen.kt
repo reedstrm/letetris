@@ -42,6 +42,9 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
     private val isAndroid = Gdx.app.type.name == "Android"
     private var waitingForStart = true
 
+    private var lastAxisMoveTime = 0f // Tracks the last time an axis move was triggered
+    private val axisMoveCooldown = 0.2f // Minimum time (in seconds) between axis moves
+
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
         Controllers.addListener(this)
@@ -245,6 +248,13 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
 
         shapeRenderer.end()
 
+        // Draw the thin white line directly between the two fields
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.color = Color.WHITE
+        val centerX = boardOrigin.x + boardWidth * blockSize + borderWidth // Midpoint between the two fields
+        shapeRenderer.line(centerX, 0f, centerX, Gdx.graphics.height.toFloat())
+        shapeRenderer.end()
+
         game.batch.begin()
         game.batch.color = Color.WHITE
         game.batch.projectionMatrix = camera.combined
@@ -301,10 +311,47 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
         val mapping = controller?.mapping ?: return false
 
         when (buttonCode) {
-            mapping.buttonA -> moveDown()
-            mapping.buttonB -> moveRight()
-            mapping.buttonX -> moveLeft()
-            mapping.buttonY -> rotatePiece()
+            mapping.buttonA -> moveDown() // D-pad down or A button
+            mapping.buttonB -> moveRight() // D-pad right or B button
+            mapping.buttonX -> moveLeft() // D-pad left or X button
+            mapping.buttonY -> rotatePiece() // D-pad up or Y button
+        }
+
+        return true
+    }
+
+    override fun axisMoved(controller: Controller?, axisCode: Int, value: Float): Boolean {
+        val deadZone = 0.5f // Larger dead zone to reduce sensitivity
+        val deltaTime = Gdx.graphics.deltaTime // Time elapsed since the last frame
+        lastAxisMoveTime += deltaTime // Accumulate time for cooldown tracking
+
+        // Debug logging for axis movement
+        // Gdx.app.log("Controller", "Axis moved: axisCode=$axisCode, value=$value")
+        // Gdx.app.log("Controller", "lastAxisMoveTime=$lastAxisMoveTime, axisMoveCooldown=$axisMoveCooldown")
+
+        // Check if enough time has passed since the last move
+        if (lastAxisMoveTime < axisMoveCooldown) {
+            return false
+        }
+
+        if (axisCode == controller?.mapping?.axisLeftX || axisCode == controller?.mapping?.axisRightX) {
+            if (value > deadZone) {
+                moveRight() // Joystick moved right
+                lastAxisMoveTime = 0f // Reset cooldown timer
+            } else if (value < -deadZone) {
+                moveLeft() // Joystick moved left
+                lastAxisMoveTime = 0f // Reset cooldown timer
+            }
+        }
+
+        if (axisCode == controller?.mapping?.axisLeftY || axisCode == controller?.mapping?.axisRightY) {
+            if (value > deadZone) {
+                moveDown() // Joystick moved down
+                lastAxisMoveTime = 0f // Reset cooldown timer
+            } else if (value < -deadZone) {
+                rotatePiece() // Joystick moved up
+                lastAxisMoveTime = 0f // Reset cooldown timer
+            }
         }
 
         return true
@@ -313,5 +360,4 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
     override fun connected(controller: Controller?) {}
     override fun disconnected(controller: Controller?) {}
     override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean = false
-    override fun axisMoved(controller: Controller?, axisCode: Int, value: Float): Boolean = false
 }
