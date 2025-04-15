@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'org.jetbrains.kotlin.jvm'
 }
 
@@ -10,6 +10,8 @@ java {
 
 dependencies {
     implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-controllers:$gdxVersion"
+
 }
 
 sourceSets.main.java.srcDirs = ['src/main/kotlin']
