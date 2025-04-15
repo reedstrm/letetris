@@ -72,6 +72,22 @@ android {
   }
 }
 
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(':android:assembleRelease')) {
+        def gitTag = 'git describe --tags --exact-match'.execute([], rootDir).text.trim()
+        def isClean = 'git status --porcelain'.execute([], rootDir).text.trim().isEmpty()
+
+        if (!gitTag) {
+            throw new GradleException("❌ Refusing to build release: HEAD is not at a Git tag.")
+        }
+
+        if (!isClean) {
+            throw new GradleException("❌ Refusing to build release: working directory is dirty.")
+        }
+
+        println "✅ Release build from tag '${gitTag}' with clean working directory."
+    }
+}
 
 android.applicationVariants.all { variant ->
     if (variant.buildType.name == "release") {
