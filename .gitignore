@@ -10,6 +10,7 @@ out/
 # Gradle
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
+local.properties
 
 # VSCode settings
 .vscode/
@@ -37,7 +38,7 @@ Thumbs.db
 *.class
 *.lock
 captures/
-local.properties
+*.idsig
 
 # Misc
 *.swp
