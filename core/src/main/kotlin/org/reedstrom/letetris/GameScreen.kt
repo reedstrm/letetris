@@ -9,8 +9,15 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.controllers.Controller
+import com.badlogic.gdx.controllers.ControllerListener
+import com.badlogic.gdx.controllers.Controllers
+import com.badlogic.gdx.controllers.mappings.Xbox
+import com.badlogic.gdx.controllers.ControllerMapping
+import com.badlogic.gdx.controllers.ControllerAdapter
 
-class GameScreen(private val game: GameMain) : ScreenAdapter() {
+
+class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListener {
     private val camera = OrthographicCamera()
     private val shapeRenderer = ShapeRenderer()
     private val font = BitmapFont().apply {
@@ -39,6 +46,19 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
+	Controllers.addListener(this)
+    }
+
+
+
+    override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
+        when (buttonCode) {
+            Xbox.A -> moveDown()
+            Xbox.B -> rotatePiece()
+            Xbox.DPAD_LEFT -> moveLeft()
+            Xbox.DPAD_RIGHT -> moveRight()
+        }
+        return true
     }
 
     override fun render(delta: Float) {
@@ -153,31 +173,39 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     }
 
     private fun handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-            piecePosition.x -= blockSize
-            if (checkCollision(xOnly = true)) piecePosition.x += blockSize
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-            piecePosition.x += blockSize
-            if (checkCollision(xOnly = true)) piecePosition.x -= blockSize
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            piecePosition.y -= blockSize
-            if (checkCollision(yOnly = true)) {
-                piecePosition.y += blockSize
-                lockPiece()
-                clearCompletedLines()
-                spawnNewPiece()
-                if (checkCollision()) {
-                    gameOver = true
-                }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) moveLeft()
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) moveRight()
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) moveDown()
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) rotatePiece()
+    }
+
+    private fun moveLeft() {
+        piecePosition.x -= blockSize
+        if (checkCollision(xOnly = true)) piecePosition.x += blockSize
+    }
+
+    private fun moveRight() {
+        piecePosition.x += blockSize
+        if (checkCollision(xOnly = true)) piecePosition.x -= blockSize
+    }
+
+    private fun moveDown() {
+        piecePosition.y -= blockSize
+        if (checkCollision(yOnly = true)) {
+            piecePosition.y += blockSize
+            lockPiece()
+            clearCompletedLines()
+            spawnNewPiece()
+            if (checkCollision()) {
+                gameOver = true
             }
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            val oldRotation = rotationState
-            rotationState = (rotationState + 1) % 4
-            if (checkCollision()) rotationState = oldRotation
-        }
+    }
+
+    private fun rotatePiece() {
+        val oldRotation = rotationState
+        rotationState = (rotationState + 1) % 4
+        if (checkCollision()) rotationState = oldRotation
     }
 
     private fun checkCollision(xOnly: Boolean = false, yOnly: Boolean = false): Boolean {
