@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write  # Required for uploading release assets
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full Git history for changelogs, etc.
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # Or 11/21, depending on your project
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      # Optional: run tests
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Create release zip
+        run: |
+          mkdir release
+          cp build/libs/*.jar release/
+          cd release
+          zip -r ../artifact-${{ github.ref_name }}.zip .
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifact-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
