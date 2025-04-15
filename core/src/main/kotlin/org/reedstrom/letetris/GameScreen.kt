@@ -18,27 +18,23 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     }
 
     private val blockSize = 30f
-    
-    private var fallTimer = 0f
-    private val fallInterval = 0.5f
-
     private val boardWidth = 10
     private val boardHeight = 20
     private val borderWidth = 50f
     private val boardOrigin = Vector2(borderWidth, borderWidth)
-
-    private val boardOffset = blockSize*boardWidth + borderWidth * 2
-
-    data class FrozenBlock(var pos: Vector2, val color: Color)
-    private val frozenBlocks = mutableListOf<FrozenBlock>()
-
-    private var gameOver = false
-
+    private val boardOffset = boardWidth * blockSize + 2 * borderWidth
 
     private var piecePosition = Vector2(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
     private var rotationState = 0
     private var currentPiece = Tetromino.random()
 
+    private var fallTimer = 0f
+    private val fallInterval = 0.5f
+
+    data class FrozenBlock(var pos: Vector2, val color: Color)
+    private val frozenBlocks = mutableListOf<FrozenBlock>()
+
+    private var gameOver = false
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
@@ -80,7 +76,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
         shapeRenderer.color = Color.DARK_GRAY
         shapeRenderer.rect(boardOrigin.x + boardOffset, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
-        
+
         // Draw frozen blocks
         for (block in frozenBlocks) {
             shapeRenderer.color = block.color
@@ -117,7 +113,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
         shapeRenderer.end()
     }
-    
+
     private fun drawGameOverOverlay() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
@@ -128,7 +124,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         game.batch.color = Color.WHITE
         game.batch.projectionMatrix = camera.combined
         font.color = Color.WHITE
-        font.draw(game.batch, "Game Over", 330f, boardOffset)
+        font.draw(game.batch, "Game Over", 330f, 250f)
         font.draw(game.batch, "Press R to Restart", 270f, 220f)
         game.batch.end()
     }
@@ -136,7 +132,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     private fun handleRestart() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             frozenBlocks.clear()
-            piecePosition.set(200f, boardOrigin.y + boardHeight * blockSize)
+            piecePosition.set(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
             rotationState = 0
             currentPiece = Tetromino.random()
             fallTimer = 0f
@@ -201,7 +197,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     private fun clearCompletedLines() {
         val rows = frozenBlocks.groupBy { it.pos.y }
         val fullRows = rows.filter { (_, blocks) ->
-            blocks.count { it.pos.x >= boardOrigin.x && it.pos.x < boardOrigin.x + boardWidth * blockSize } >= boardWidth
+            blocks.count { it.pos.x >= boardOrigin.x + boardOffset && it.pos.x < boardOrigin.x + boardOffset + boardWidth * blockSize } >= boardWidth
         }.keys.sorted()
 
         if (fullRows.isEmpty()) return
