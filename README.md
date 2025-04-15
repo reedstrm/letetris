@@ -1,5 +1,7 @@
 # LeTetris
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 LeTetris is a Tetris-inspired game designed to help train binocular cooperation for amblyopia (lazy eye). It features dual fields — one for falling blocks and one for frozen blocks — to encourage simultaneous visual engagement from both eyes. It has only been tested in an old fashioned phone head mount (like the classic Cardboard).
 
 [![Screenshot](screenshots/screenshot-small.png)](screenshots/screenshot.png)
