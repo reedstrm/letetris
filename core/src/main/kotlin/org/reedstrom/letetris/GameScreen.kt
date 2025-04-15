@@ -18,21 +18,27 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     }
 
     private val blockSize = 30f
-    private var piecePosition = Vector2(200f, 380f)
-    private var rotationState = 0
-    private var currentPiece = Tetromino.random()
-
+    
     private var fallTimer = 0f
     private val fallInterval = 0.5f
 
     private val boardWidth = 10
     private val boardHeight = 20
-    private val boardOrigin = Vector2(50f, 50f)
+    private val borderWidth = 50f
+    private val boardOrigin = Vector2(borderWidth, borderWidth)
+
+    private val boardOffset = blockSize*boardWidth + borderWidth * 2
 
     data class FrozenBlock(var pos: Vector2, val color: Color)
     private val frozenBlocks = mutableListOf<FrozenBlock>()
 
     private var gameOver = false
+
+
+    private var piecePosition = Vector2(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
+    private var rotationState = 0
+    private var currentPiece = Tetromino.random()
+
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
@@ -73,12 +79,12 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         shapeRenderer.rect(boardOrigin.x, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
 
         shapeRenderer.color = Color.DARK_GRAY
-        shapeRenderer.rect(450f, 50f, 300f, 380f)
-
+        shapeRenderer.rect(boardOrigin.x + boardOffset, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
+        
         // Draw frozen blocks
         for (block in frozenBlocks) {
             shapeRenderer.color = block.color
-            shapeRenderer.rect(block.pos.x + 250f, block.pos.y, blockSize, blockSize)
+            shapeRenderer.rect(block.pos.x, block.pos.y, blockSize, blockSize)
         }
 
         // Draw current piece
@@ -93,8 +99,25 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         }
 
         shapeRenderer.end()
-    }
 
+        // Draw debug grid
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.color = Color.GRAY
+
+        for (i in 0..boardWidth) {
+            val x = boardOrigin.x + i * blockSize
+            shapeRenderer.line(x, boardOrigin.y, x, boardOrigin.y + boardHeight * blockSize)
+            shapeRenderer.line(x + boardOffset, boardOrigin.y, x + boardOffset, boardOrigin.y + boardHeight * blockSize)
+        }
+        for (j in 0..boardHeight) {
+            val y = boardOrigin.y + j * blockSize
+            shapeRenderer.line(boardOrigin.x, y, boardOrigin.x + boardWidth * blockSize, y)
+            shapeRenderer.line(boardOrigin.x + boardOffset, y, boardOrigin.x + boardWidth * blockSize + boardOffset, y)
+        }
+
+        shapeRenderer.end()
+    }
+    
     private fun drawGameOverOverlay() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
@@ -105,7 +128,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         game.batch.color = Color.WHITE
         game.batch.projectionMatrix = camera.combined
         font.color = Color.WHITE
-        font.draw(game.batch, "Game Over", 330f, 250f)
+        font.draw(game.batch, "Game Over", 330f, boardOffset)
         font.draw(game.batch, "Press R to Restart", 270f, 220f)
         game.batch.end()
     }
@@ -118,25 +141,6 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
             currentPiece = Tetromino.random()
             fallTimer = 0f
             gameOver = false
-        }
-    }
-
-    private fun clearCompletedLines() {
-        val rows = frozenBlocks.groupBy { it.pos.y }
-        val fullRows = rows.filter { (_, blocks) ->
-            blocks.count { it.pos.x >= boardOrigin.x && it.pos.x < boardOrigin.x + boardWidth * blockSize } >= boardWidth
-        }.keys.sorted()
-
-        if (fullRows.isEmpty()) return
-
-        frozenBlocks.removeIf { it.pos.y in fullRows }
-
-        for (row in fullRows) {
-            for (block in frozenBlocks) {
-                if (block.pos.y > row) {
-                    block.pos.y -= blockSize
-                }
-            }
         }
     }
 
@@ -175,7 +179,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
             if (!xOnly && y < boardOrigin.y) return true
             if (!yOnly && (x < boardOrigin.x || x >= boardOrigin.x + boardWidth * blockSize)) return true
-            if (frozenBlocks.any { it.pos.x + 250f == x && it.pos.y == y }) return true
+            if (frozenBlocks.any { it.pos.x - boardOffset == x && it.pos.y == y }) return true
         }
         return false
     }
@@ -184,17 +188,32 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         for (offset in currentPiece.getRotatedOffsets(rotationState)) {
             val x = piecePosition.x + offset.x * blockSize
             val y = piecePosition.y + offset.y * blockSize
-            frozenBlocks.add(FrozenBlock(Vector2(x - 250f, y), currentPiece.color))
+            frozenBlocks.add(FrozenBlock(Vector2(x + boardOffset, y), currentPiece.color))
         }
     }
 
     private fun spawnNewPiece() {
-        piecePosition.set(200f, boardOrigin.y + boardHeight * blockSize)
+        piecePosition.set(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
         rotationState = 0
         currentPiece = Tetromino.random()
     }
 
-    override fun dispose() {
-        shapeRenderer.dispose()
+    private fun clearCompletedLines() {
+        val rows = frozenBlocks.groupBy { it.pos.y }
+        val fullRows = rows.filter { (_, blocks) ->
+            blocks.count { it.pos.x >= boardOrigin.x && it.pos.x < boardOrigin.x + boardWidth * blockSize } >= boardWidth
+        }.keys.sorted()
+
+        if (fullRows.isEmpty()) return
+
+        frozenBlocks.removeIf { it.pos.y in fullRows }
+
+        for (row in fullRows) {
+            for (block in frozenBlocks) {
+                if (block.pos.y > row) {
+                    block.pos = Vector2(block.pos.x, block.pos.y - blockSize)
+                }
+            }
+        }
     }
 }
