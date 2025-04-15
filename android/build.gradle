@@ -3,6 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
+
 android {
     namespace 'org.reedstrom.letetris'
     compileSdk = 34
@@ -12,7 +18,7 @@ android {
         minSdk = 21                     // Target Android 5.0+ devices
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
     }
 
     buildTypes {
@@ -47,7 +53,43 @@ android {
             useLegacyPackaging = true
         }
     }
+    signingConfigs {
+      release {
+        storeFile rootProject.file(localProps['storeFile'])
+        storePassword localProps['storePassword']
+        keyAlias localProps['keyAlias']
+        keyPassword localProps['keyPassword']
+      }
+    }
+
+  buildTypes {
+    release {
+      signingConfig signingConfigs.release
+      minifyEnabled false
+      shrinkResources false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
 }
+
+
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name == "release") {
+        variant.outputs.all { output ->
+            // Get version info from Git
+            def gitTag = 'git describe --tags --abbrev=0'.execute([], rootDir).text.trim()
+            def gitHash = 'git rev-parse --short HEAD'.execute([], rootDir).text.trim()
+
+            def appName = "letetris"
+            def versionTag = gitTag ?: variant.versionName
+            def versionCode = variant.versionCode
+
+            def newApkName = "${appName}-${versionTag}+g${gitHash}-${variant.buildType.name}.apk"
+            outputFileName = newApkName
+        }
+    }
+}
+
 
 // called every time gradle gets executed, takes the native dependencies of
 // the natives configuration, and extracts them to the proper libs/ folders

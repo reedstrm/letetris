@@ -1,3 +1,6 @@
+# KEYS!
+keystore.jks
+keystore.b64
 # Kotlin & Java build outputs
 /build/
 **/build/
