@@ -7,9 +7,6 @@ out/
 # Gradle
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
-gradle-app.setting
-gradlew
-gradlew.bat
 
 # VSCode settings
 .vscode/
