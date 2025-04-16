@@ -8,6 +8,7 @@ class GameState(private val boardWidth: Int, private val boardHeight: Int) {
     var score: Int = 0
     var gameOver: Boolean = false
     var waitingForStart: Boolean = true
+    var fallingOnLeft: Boolean = true
 
     var piecePosition = Position(boardWidth / 2, boardHeight - 1) // Grid-based position
     var rotationState = 0
@@ -30,6 +31,8 @@ class GameState(private val boardWidth: Int, private val boardHeight: Int) {
         currentPiece = Tetromino.random()
         score = 0
         gameOver = false
+        waitingForStart = true
+        fallTimer = 0f
     }
 
     fun tick(delta: Float) {

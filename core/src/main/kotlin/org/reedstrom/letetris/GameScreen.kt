@@ -89,10 +89,14 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         shapeRenderer.color = Color.DARK_GRAY
         shapeRenderer.rect(boardOrigin.x + boardOffset, boardOrigin.y, boardWidth * blockSize, boardHeight * blockSize)
 
-        // Draw frozen blocks to right field
+        // Determine the offset for rendering based on the falling side
+        val fallingOffset = if (gameState.fallingOnLeft) 0f else boardOffset
+        val frozenOffset = if (gameState.fallingOnLeft) boardOffset else 0f
+
+        // Draw frozen blocks
         for (block in gameState.frozenBlocks) {
             shapeRenderer.color = block.color
-            shapeRenderer.rect(toScreenX(block.pos.x) + boardOffset, toScreenY(block.pos.y), blockSize, blockSize)
+            shapeRenderer.rect(toScreenX(block.pos.x) + frozenOffset, toScreenY(block.pos.y), blockSize, blockSize)
         }
 
         // Draw the current piece
@@ -100,7 +104,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         for (offset in gameState.currentPiece.getRotatedOffsets(gameState.rotationState)) {
             val x = gameState.piecePosition.x + offset.x.toInt()
             val y = gameState.piecePosition.y + offset.y.toInt()
-            shapeRenderer.rect(toScreenX(x), toScreenY(y), blockSize, blockSize)
+            shapeRenderer.rect(toScreenX(x) + fallingOffset, toScreenY(y), blockSize, blockSize)
         }
         shapeRenderer.end()
 
@@ -163,11 +167,14 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         // Draw text for the left screen
         font.draw(game.batch, "Get Ready!", leftCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.6f)
         font.draw(game.batch, startText, leftCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.3f)
+        if (gameState.fallingOnLeft) font.draw(game.batch, "<->", leftCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.1f)
+         
 
         // Draw text for the right screen
         font.draw(game.batch, "Get Ready!", rightCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.6f)
         font.draw(game.batch, startText, rightCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.3f)
-
+        if (!gameState.fallingOnLeft) font.draw(game.batch, "<->", rightCenterX - overlayWidth / 4, overlayY + overlayHeight * 0.1f)
+        
         game.batch.end()
     }
 

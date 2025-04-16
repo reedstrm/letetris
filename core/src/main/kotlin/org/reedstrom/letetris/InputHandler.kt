@@ -6,8 +6,8 @@ import com.badlogic.gdx.InputProcessor
 class InputHandler(private val gameState: GameState) : InputProcessor {
     override fun keyDown(keycode: Int): Boolean {
         when (keycode) {
-            Input.Keys.LEFT -> gameState.moveLeft()
-            Input.Keys.RIGHT -> gameState.moveRight()
+            Input.Keys.LEFT -> if (gameState.waitingForStart) gameState.fallingOnLeft = true else gameState.moveLeft()
+            Input.Keys.RIGHT -> if (gameState.waitingForStart) gameState.fallingOnLeft = false else gameState.moveRight()
             Input.Keys.DOWN -> gameState.moveDown()
             Input.Keys.UP -> gameState.rotatePiece()
             Input.Keys.SPACE -> if (gameState.waitingForStart) gameState.startGame()

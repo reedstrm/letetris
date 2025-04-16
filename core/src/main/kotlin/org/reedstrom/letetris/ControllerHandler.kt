@@ -13,8 +13,8 @@ class ControllerHandler(private val gameState: GameState) : ControllerListener {
         val mapping = controller?.mapping ?: return false
         when (buttonCode) {
             mapping.buttonA -> gameState.moveDown()
-            mapping.buttonB -> gameState.moveRight()
-            mapping.buttonX -> gameState.moveLeft()
+            mapping.buttonB ->  if (gameState.waitingForStart) gameState.fallingOnLeft = false else gameState.moveRight()
+            mapping.buttonX ->  if (gameState.waitingForStart) gameState.fallingOnLeft = true else gameState.moveLeft()
             mapping.buttonY -> gameState.rotatePiece()
             mapping.buttonStart -> if (gameState.waitingForStart) gameState.startGame() else if (gameState.gameOver) gameState.restartGame()
         }
@@ -32,10 +32,10 @@ class ControllerHandler(private val gameState: GameState) : ControllerListener {
 
         if (axisCode == controller?.mapping?.axisLeftX) {
             if (value > deadZone) {
-                gameState.moveRight()
+                if (gameState.waitingForStart) gameState.fallingOnLeft = false else gameState.moveRight()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             } else if (value < -deadZone) {
-                gameState.moveLeft()
+                if (gameState.waitingForStart) gameState.fallingOnLeft = true else gameState.moveLeft()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             }
         }
