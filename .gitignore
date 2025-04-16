@@ -12,10 +12,6 @@ out/
 !gradle/wrapper/gradle-wrapper.jar
 local.properties
 
-# VSCode settings
-.vscode/
-*.code-workspace
-
 # IntelliJ / Android Studio
 .idea/
 *.iml

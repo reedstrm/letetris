@@ -1,0 +1,9 @@
+"configurations": [
+  {
+    "type": "java",
+    "name": "Run GameMain",
+    "request": "launch",
+    "mainClass": "org.reedstrom.letetris.DesktopLauncher",
+    "projectName": "desktop"
+  }
+]

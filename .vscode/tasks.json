@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Assemble Android Debug",
+      "type": "shell",
+      "command": "./gradlew :android:assembleDebug",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Install APK on Device",
+      "type": "shell",
+      "command": "adb install -r android/build/outputs/apk/debug/android-debug.apk",
+      "dependsOn": ["Assemble Android Debug"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Desktop Game",
+      "type": "shell",
+      "command": "./gradlew :desktop:run",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
