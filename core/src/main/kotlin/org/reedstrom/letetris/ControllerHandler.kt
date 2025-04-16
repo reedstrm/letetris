@@ -4,7 +4,7 @@ import com.badlogic.gdx.controllers.Controller
 import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.Gdx
 
-class ControllerHandler(private val gameScreen: GameScreen) : ControllerListener {
+class ControllerHandler(private val gameState: GameState) : ControllerListener {
     private val deadZone = 0.5f // Larger dead zone to reduce sensitivity
     private var lastAxisMoveTime = 0f // Tracks the last time an axis move was triggered
     private val axisMoveCooldown = 0.2f // Minimum time (in seconds) between axis moves
@@ -12,11 +12,11 @@ class ControllerHandler(private val gameScreen: GameScreen) : ControllerListener
     override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
         val mapping = controller?.mapping ?: return false
         when (buttonCode) {
-            mapping.buttonA -> gameScreen.moveDown()
-            mapping.buttonB -> gameScreen.moveRight()
-            mapping.buttonX -> gameScreen.moveLeft()
-            mapping.buttonY -> gameScreen.rotatePiece()
-            mapping.buttonStart -> if (gameScreen.waitingForStart) gameScreen.startGame()
+            mapping.buttonA -> gameState.moveDown()
+            mapping.buttonB -> gameState.moveRight()
+            mapping.buttonX -> gameState.moveLeft()
+            mapping.buttonY -> gameState.rotatePiece()
+            mapping.buttonStart -> if (gameState.waitingForStart) gameState.startGame() else if (gameState.gameOver) gameState.restartGame()
         }
         return true
     }
@@ -32,20 +32,20 @@ class ControllerHandler(private val gameScreen: GameScreen) : ControllerListener
 
         if (axisCode == controller?.mapping?.axisLeftX) {
             if (value > deadZone) {
-                gameScreen.moveRight()
+                gameState.moveRight()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             } else if (value < -deadZone) {
-                gameScreen.moveLeft()
+                gameState.moveLeft()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             }
         }
 
         if (axisCode == controller?.mapping?.axisLeftY) {
             if (value > deadZone) {
-                gameScreen.moveDown()
+                gameState.moveDown()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             } else if (value < -deadZone) {
-                gameScreen.rotatePiece()
+                gameState.rotatePiece()
                 lastAxisMoveTime = 0f // Reset cooldown timer
             }
         }

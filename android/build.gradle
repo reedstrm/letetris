@@ -70,6 +70,12 @@ android {
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
   }
+  // Filter out release variant when using `gradlew build`
+  variantFilter { variant ->
+      if (variant.buildType.name == 'release' && gradle.startParameter.taskNames == ['build']) {
+          variant.ignore = true
+      }
+  }
 }
 
 gradle.taskGraph.whenReady { taskGraph ->

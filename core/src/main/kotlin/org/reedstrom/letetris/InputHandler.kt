@@ -3,15 +3,15 @@ package org.reedstrom.letetris
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 
-class InputHandler(private val gameScreen: GameScreen) : InputProcessor {
+class InputHandler(private val gameState: GameState) : InputProcessor {
     override fun keyDown(keycode: Int): Boolean {
         when (keycode) {
-            Input.Keys.LEFT -> gameScreen.moveLeft()
-            Input.Keys.RIGHT -> gameScreen.moveRight()
-            Input.Keys.DOWN -> gameScreen.moveDown()
-            Input.Keys.UP -> gameScreen.rotatePiece()
-            Input.Keys.SPACE -> if (gameScreen.waitingForStart) gameScreen.startGame()
-            Input.Keys.R -> if (gameScreen.gameOver) gameScreen.restartGame()
+            Input.Keys.LEFT -> gameState.moveLeft()
+            Input.Keys.RIGHT -> gameState.moveRight()
+            Input.Keys.DOWN -> gameState.moveDown()
+            Input.Keys.UP -> gameState.rotatePiece()
+            Input.Keys.SPACE -> if (gameState.waitingForStart) gameState.startGame()
+            Input.Keys.R -> if (gameState.gameOver) gameState.restartGame()
         }
         return true
     }
