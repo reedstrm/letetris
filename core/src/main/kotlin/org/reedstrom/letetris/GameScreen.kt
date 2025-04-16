@@ -4,16 +4,15 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.controllers.Controllers
-import com.badlogic.gdx.controllers.Controller
-import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
+import org.reedstrom.letetris.InputHandler
 
-class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListener {
+class GameScreen(private val game: GameMain) : ScreenAdapter() {
     private val camera = OrthographicCamera()
     private val shapeRenderer = ShapeRenderer()
     private val font = BitmapFont().apply {
@@ -37,17 +36,34 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
     data class FrozenBlock(var pos: Vector2, val color: Color)
     private val frozenBlocks = mutableListOf<FrozenBlock>()
 
-    private var gameOver = false
-    private var score = 0
     private val isAndroid = Gdx.app.type.name == "Android"
-    private var waitingForStart = true
-
-    private var lastAxisMoveTime = 0f // Tracks the last time an axis move was triggered
-    private val axisMoveCooldown = 0.2f // Minimum time (in seconds) between axis moves
+    
+    // Game state variables - perhaps should encapsulate in a separate class
+    private var score = 0
+    var gameOver = false
+    var waitingForStart = true
 
     override fun show() {
         camera.setToOrtho(false, 800f, 480f)
-        Controllers.addListener(this)
+
+        // Register input handlers
+        Gdx.input.inputProcessor = InputHandler(this)
+        Controllers.addListener(ControllerHandler(this))
+    }
+
+    // Add helper methods for game state changes
+    fun startGame() {
+        waitingForStart = false
+    }
+
+    fun restartGame() {
+        frozenBlocks.clear()
+        piecePosition.set(blockSize * 5 + borderWidth, boardOrigin.y + boardHeight * blockSize)
+        rotationState = 0
+        currentPiece = Tetromino.random()
+        fallTimer = 0f
+        score = 0
+        gameOver = false
     }
 
     private fun drawGameBoard() {
@@ -104,20 +120,13 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
 
         if (waitingForStart) {
             drawGetReadyOverlay()
-            val controller = Controllers.getCurrent()
-            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || controller?.getButton(controller?.mapping?.buttonStart ?: -1) == true) {
-                waitingForStart = false
-            }
             return
         }
 
-        handleRestart()
         if (gameOver) {
             drawGameOverOverlay()
             return
         }
-
-        handleInput()
 
         fallTimer += delta
         if (fallTimer >= fallInterval) {
@@ -151,24 +160,17 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
         }
     }
 
-    private fun handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) moveLeft()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) moveRight()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) moveDown()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) rotatePiece()
-    }
-
-    private fun moveLeft() {
+    fun moveLeft() {
         piecePosition.x -= blockSize
         if (checkCollision(xOnly = true)) piecePosition.x += blockSize
     }
 
-    private fun moveRight() {
+    fun moveRight() {
         piecePosition.x += blockSize
         if (checkCollision(xOnly = true)) piecePosition.x -= blockSize
     }
 
-    private fun moveDown() {
+    fun moveDown() {
         piecePosition.y -= blockSize
         if (checkCollision(yOnly = true)) {
             piecePosition.y += blockSize
@@ -181,7 +183,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
         }
     }
 
-    private fun rotatePiece() {
+    fun rotatePiece() {
         val oldRotation = rotationState
         rotationState = (rotationState + 1) % 4
         if (checkCollision()) rotationState = oldRotation
@@ -306,58 +308,4 @@ class GameScreen(private val game: GameMain) : ScreenAdapter(), ControllerListen
 
         game.batch.end()
     }
-
-    override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
-        val mapping = controller?.mapping ?: return false
-
-        when (buttonCode) {
-            mapping.buttonA -> moveDown() // D-pad down or A button
-            mapping.buttonB -> moveRight() // D-pad right or B button
-            mapping.buttonX -> moveLeft() // D-pad left or X button
-            mapping.buttonY -> rotatePiece() // D-pad up or Y button
-        }
-
-        return true
-    }
-
-    override fun axisMoved(controller: Controller?, axisCode: Int, value: Float): Boolean {
-        val deadZone = 0.5f // Larger dead zone to reduce sensitivity
-        val deltaTime = Gdx.graphics.deltaTime // Time elapsed since the last frame
-        lastAxisMoveTime += deltaTime // Accumulate time for cooldown tracking
-
-        // Debug logging for axis movement
-        // Gdx.app.log("Controller", "Axis moved: axisCode=$axisCode, value=$value")
-        // Gdx.app.log("Controller", "lastAxisMoveTime=$lastAxisMoveTime, axisMoveCooldown=$axisMoveCooldown")
-
-        // Check if enough time has passed since the last move
-        if (lastAxisMoveTime < axisMoveCooldown) {
-            return false
-        }
-
-        if (axisCode == controller?.mapping?.axisLeftX || axisCode == controller?.mapping?.axisRightX) {
-            if (value > deadZone) {
-                moveRight() // Joystick moved right
-                lastAxisMoveTime = 0f // Reset cooldown timer
-            } else if (value < -deadZone) {
-                moveLeft() // Joystick moved left
-                lastAxisMoveTime = 0f // Reset cooldown timer
-            }
-        }
-
-        if (axisCode == controller?.mapping?.axisLeftY || axisCode == controller?.mapping?.axisRightY) {
-            if (value > deadZone) {
-                moveDown() // Joystick moved down
-                lastAxisMoveTime = 0f // Reset cooldown timer
-            } else if (value < -deadZone) {
-                rotatePiece() // Joystick moved up
-                lastAxisMoveTime = 0f // Reset cooldown timer
-            }
-        }
-
-        return true
-    }
-
-    override fun connected(controller: Controller?) {}
-    override fun disconnected(controller: Controller?) {}
-    override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean = false
 }
