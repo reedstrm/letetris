@@ -9,6 +9,7 @@ class GameState(private val boardWidth: Int, private val boardHeight: Int) {
     var gameOver: Boolean = false
     var waitingForStart: Boolean = true
     var fallingOnLeft: Boolean = true
+    var activeScreen: String = "GameScreen" // Default to GameScreen
 
     var piecePosition = Position(boardWidth / 2, boardHeight - 1) // Grid-based position
     var rotationState = 0

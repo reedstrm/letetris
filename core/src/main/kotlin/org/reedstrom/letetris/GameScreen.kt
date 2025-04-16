@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import org.reedstrom.letetris.InputHandler
+import org.reedstrom.letetris.TestScreen
 
 class GameScreen(private val game: GameMain) : ScreenAdapter() {
     private val camera = OrthographicCamera()
@@ -59,6 +60,12 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
     }
 
     override fun render(delta: Float) {
+        // Check if the active screen has changed
+        if (gameState.activeScreen == "TestScreen") {
+            game.setScreen(TestScreen()) // Switch to TestScreen
+            return
+        }
+
         drawGameBoard()
 
         if (gameState.waitingForStart) {

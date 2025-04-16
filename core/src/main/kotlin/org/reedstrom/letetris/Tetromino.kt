@@ -32,9 +32,9 @@ enum class Tetromino(
 
     S(arrayOf(
         arrayOf(Vector2(0f, 0f), Vector2(1f, 0f), Vector2(-1f, 1f), Vector2(0f, 1f)),
-        arrayOf(Vector2(0f, 0f), Vector2(0f, 1f), Vector2(1f, -1f), Vector2(1f, 0f)),
+        arrayOf(Vector2(0f, 0f), Vector2(1f, 0f), Vector2(1f, 1f), Vector2(0f, -1f)),
         arrayOf(Vector2(0f, 0f), Vector2(1f, 0f), Vector2(-1f, 1f), Vector2(0f, 1f)),
-        arrayOf(Vector2(0f, 0f), Vector2(0f, 1f), Vector2(1f, -1f), Vector2(1f, 0f))
+        arrayOf(Vector2(0f, 0f), Vector2(1f, 0f), Vector2(1f, 1f), Vector2(0f, -1f))
     ), Color.GREEN),
 
     Z(arrayOf(

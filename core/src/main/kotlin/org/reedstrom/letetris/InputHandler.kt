@@ -12,6 +12,7 @@ class InputHandler(private val gameState: GameState) : InputProcessor {
             Input.Keys.UP -> gameState.rotatePiece()
             Input.Keys.SPACE -> if (gameState.waitingForStart) gameState.startGame()
             Input.Keys.R -> if (gameState.gameOver) gameState.restartGame()
+            Input.Keys.T -> if (gameState.waitingForStart) gameState.activeScreen = "TestScreen" // Switch to TestScreen
         }
         return true
     }
