@@ -7,12 +7,20 @@ def localProps = new Properties()
 def localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
-} else {
-        localProps['storeFile']  = 'android/keystore/release.jks'
-        localProps['storePassword'] = System.getenv("KEYSTORE_PASSWORD")
-        localProps['keyAlias'] = System.getenv("KEY_ALIAS")
-        localProps['keyPassword'] = System.getenv("KEY_PASSWORD")
-      }
+}
+// Only set missing values from environment
+if (!localProps.containsKey("storeFile"){
+   localProps['storeFile']  = 'android/keystore/release.jks'
+}
+if (!localProps.containsKey("storePassword") && System.getenv("KEYSTORE_PASSWORD")) {
+   localProps['storePassword'] = System.getenv("KEYSTORE_PASSWORD")
+}
+if (!localProps.containsKey("keyAlias") && System.getenv("KEY_ALIAS")) {
+   localProps['keyAlias'] = System.getenv("KEY_ALIAS")
+}
+if (!localProps.containsKey("KEY_PASSWORD") && System.getenv("KEY_PASSWORD")) {
+    localProps['keyPassword'] = System.getenv("KEY_PASSWORD")
+}
 
 android {
     namespace 'org.reedstrom.letetris'
