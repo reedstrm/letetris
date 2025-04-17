@@ -1,6 +1,7 @@
 # KEYS!
 keystore.jks
 keystore.b64
+android/keystore
 # Kotlin & Java build outputs
 /build/
 **/build/
