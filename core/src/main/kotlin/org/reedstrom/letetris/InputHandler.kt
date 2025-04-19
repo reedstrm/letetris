@@ -2,17 +2,25 @@ package org.reedstrom.letetris
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.Gdx
 
 class InputHandler(private val gameState: GameState) : InputProcessor {
     override fun keyDown(keycode: Int): Boolean {
+        // Gdx.app.log("InputHandler", "Key pressed: $keycode")
         when (keycode) {
-            Input.Keys.LEFT -> if (gameState.waitingForStart) gameState.fallingOnLeft = true else gameState.moveLeft()
-            Input.Keys.RIGHT -> if (gameState.waitingForStart) gameState.fallingOnLeft = false else gameState.moveRight()
-            Input.Keys.DOWN -> gameState.moveDown()
+            Input.Keys.LEFT -> gameState.moveLeft()
+            Input.Keys.RIGHT -> gameState.moveRight()
+            Input.Keys.DOWN -> gameState.drop() 
             Input.Keys.UP -> gameState.rotatePiece()
             Input.Keys.SPACE -> if (gameState.waitingForStart) gameState.startGame()
             Input.Keys.R -> if (gameState.gameOver) gameState.restartGame()
             Input.Keys.T -> if (gameState.waitingForStart) gameState.activeScreen = "TestScreen" // Switch to TestScreen
+            Input.Keys.C -> if (gameState.waitingForStart) gameState.activeScreen = "ConfigScreen" // Switch to ConfigScreen
+            Input.Keys.V -> if (gameState.waitingForStart) gameState.activeScreen = "CreditsScreen" // Switch to CreditsScreen
+            Input.Keys.COMMA -> gameState.fallingOnLeft = true
+            Input.Keys.PERIOD -> gameState.fallingOnLeft = false
+            Input.Keys.LEFT_BRACKET -> gameState.internalSpacing += 0.1f
+            Input.Keys.RIGHT_BRACKET -> gameState.internalSpacing -= 0.1f
         }
         return true
     }

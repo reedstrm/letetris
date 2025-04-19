@@ -12,11 +12,13 @@ class ControllerHandler(private val gameState: GameState) : ControllerListener {
     override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
         val mapping = controller?.mapping ?: return false
         when (buttonCode) {
-            mapping.buttonA -> gameState.moveDown()
-            mapping.buttonB ->  if (gameState.waitingForStart) gameState.fallingOnLeft = false else gameState.moveRight()
-            mapping.buttonX ->  if (gameState.waitingForStart) gameState.fallingOnLeft = true else gameState.moveLeft()
+            mapping.buttonA -> gameState.drop()
+            mapping.buttonB -> gameState.moveRight()
+            mapping.buttonX -> gameState.moveLeft()
             mapping.buttonY -> gameState.rotatePiece()
             mapping.buttonStart -> if (gameState.waitingForStart) gameState.startGame() else if (gameState.gameOver) gameState.restartGame()
+            mapping.buttonR1 -> gameState.internalSpacing += 0.1f
+            mapping.buttonL1 -> gameState.internalSpacing -= 0.1f
         }
         return true
     }
