@@ -16,7 +16,7 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
 
     private val shapeRenderer = ShapeRenderer()
     private val font = BitmapFont().apply {
-        data.setScale(1.5f)
+        data.setScale(2f)
     }
 
     private val isAndroid = Gdx.app.type.name == "Android"
