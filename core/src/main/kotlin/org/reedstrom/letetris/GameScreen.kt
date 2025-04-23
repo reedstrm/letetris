@@ -141,9 +141,15 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
             for (y in 0..gameState.boardHeight.toInt()) {
                 if ((x + y) % 2 == 0) {
                     if (x % 2 == 0) {
+                        shapeRenderer.color = Color.LIGHT_GRAY
                         shapeRenderer.rect(x.toFloat() + origin.x, y.toFloat() + origin.y, 1f, 1f)
-                    } else {
+                        shapeRenderer.color = Color.BLACK
                         shapeRenderer.rect(x.toFloat() + origin.x + offset, y.toFloat() + origin.y, 1f, 1f)
+                    } else {
+                        shapeRenderer.color = Color.LIGHT_GRAY
+                        shapeRenderer.rect(x.toFloat() + origin.x + offset, y.toFloat() + origin.y, 1f, 1f)
+                        shapeRenderer.color = Color.BLACK
+                        shapeRenderer.rect(x.toFloat() + origin.x, y.toFloat() + origin.y, 1f, 1f)
                     }
                 }
             }
@@ -163,20 +169,20 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         shapeRenderer.line(centerX, 0f, centerX, gameState.worldHeight)
         shapeRenderer.end()
         
-        // Draw the overlay background
-        shapeRenderer.projectionMatrix = camera.combined
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
+        // // Draw the overlay background
+        // shapeRenderer.projectionMatrix = camera.combined
+        // shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        // shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
 
-        // Left screen (centered on the left playing field)
+        // // Left screen (centered on the left playing field)
         val leftCenterX = gameState.boardOrigin.x + gameState.boardWidth / 2f
-        shapeRenderer.rect(leftCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
+        // shapeRenderer.rect(leftCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
 
-        // Right screen (centered on the right playing field)
+        // // Right screen (centered on the right playing field)
         val rightCenterX = gameState.boardOrigin.x + gameState.boardOffset + gameState.boardWidth / 2f
-        shapeRenderer.rect(rightCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
+        // shapeRenderer.rect(rightCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
 
-        shapeRenderer.end()
+        // shapeRenderer.end()
 
         // Draw the overlay text
         game.batch.projectionMatrix = textCamera.combined
@@ -220,20 +226,20 @@ class GameScreen(private val game: GameMain) : ScreenAdapter() {
         val overlayHeight = gameState.boardHeight * 0.3f // 30% of the board height
         val overlayY = gameState.boardOrigin.y + gameState.boardHeight * 0.5f - overlayHeight / 2 // Centered vertically
 
-        // Draw the overlay background
-        shapeRenderer.projectionMatrix = camera.combined
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
+        // // Draw the overlay background
+        // shapeRenderer.projectionMatrix = camera.combined
+        // shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        // shapeRenderer.color = Color(0f, 0f, 0f, 0.7f)
 
-        // Left screen (centered on the left playing field)
+        // // Left screen (centered on the left playing field)
         val leftCenterX = gameState.boardOrigin.x + gameState.boardWidth / 2
-        shapeRenderer.rect(leftCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
+        // shapeRenderer.rect(leftCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
 
-        // Right screen (centered on the right playing field)
+        // // Right screen (centered on the right playing field)
         val rightCenterX = gameState.boardOrigin.x + gameState.boardOffset + gameState.boardWidth / 2
-        shapeRenderer.rect(rightCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
+        // shapeRenderer.rect(rightCenterX - overlayWidth / 2, overlayY, overlayWidth, overlayHeight)
 
-        shapeRenderer.end()
+        // shapeRenderer.end()
 
         // Draw the overlay text
         game.batch.projectionMatrix = textCamera.combined
